@@ -119,6 +119,8 @@ let markets = [
         }
     },
 
+
+
     // {
     //     marketName: 'btc38',
     //     URL: 'http://api.btc38.com/v1/ticker.php?c=all&mk_type=cny',
@@ -217,8 +219,8 @@ let markets = [
                                 let x = [];
                                 for (var i = 0; i < 3; i++){
                                     x[i] = {};
-                                    x[i].quantity = data.bids[i][1];
-                                    x[i].rate = data.bids[i][0];
+                                    x[i].Quantity = data.bids[i][1];
+                                    x[i].Rate = data.bids[i][0];
                                     order.push(x[i]);
                                 }
                             } else {
@@ -290,32 +292,65 @@ let markets = [
 	// 	},
 	// },
     
- //    {
-	// 	marketName: 'bleutrade',
-	// 	URL: 'https://bleutrade.com/api/v2/public/getmarketsummaries', //URL To Fetch API From.
-	// 	toBTCURL: false, //URL, if needed for an external bitcoin price api.
- //        pairURL : '',
- //        last: function (data, coin_prices) { //Get the last price of coins in JSON data
-	// 		return new Promise(function (res, rej) {
-	// 			try {
-	// 				for (let obj of data.result) {
-	// 					if(obj["MarketName"].includes('_' + baseCoin)) {
-	// 						let coinName = obj["MarketName"].replace("_" + baseCoin, '');
-	// 						if (!coin_prices[coinName]) coin_prices[coinName] = {};
-	// 						coin_prices[coinName].bleutrade = obj.Last;
- //                        }
- //                    }
- //                    res(coin_prices);
+    {
+		marketName: 'bleutrade',
+		URL: 'https://bleutrade.com/api/v2/public/getmarketsummaries', //URL To Fetch API From.
+		toBTCURL: false, //URL, if needed for an external bitcoin price api.
+        pairURL : '',
+        last: function (data, coin_prices) { //Get the last price of coins in JSON data
+			return new Promise(function (res, rej) {
+				try {
+					for (let obj of data.result) {
+						if(obj["MarketName"].includes('_' + baseCoin)) {
+							let coinName = obj["MarketName"].replace("_" + baseCoin, '');
+							if (!coin_prices[coinName]) coin_prices[coinName] = {};
+							coin_prices[coinName].bleutrade = obj.Last;
+                        }
+                    }
+                    res(coin_prices);
 					
- //                }
- //                catch (err) {
- //                    console.log(err);
- //                    rej(err);
- //                }
+                }
+                catch (err) {
+                    console.log(err);
+                    rej(err);
+                }
 
- //            })
-	// 	},
-	// },
+            })
+		},
+        orderBook: function(type, targetCoin){
+            let url = '';
+            let buyOrSell = ''
+            if (type == 'buy'){
+                url = 'https://bleutrade.com/api/v2/public/getorderbook?market=' + targetCoin.toUpperCase() + '_' + baseCoin + '&type=buy&depth=3';
+                buyOrSell = 'buy';
+            } else {
+                url = 'https://bleutrade.com/api/v2/public/getorderbook?market=' + targetCoin.toUpperCase() + '_' + baseCoin + '&type=sell&depth=3';
+                buyOrSell = 'sell';
+            }
+            return new Promise(function (resolve, reject) {
+                request(url, function (error, response, body) {
+                    try {
+                        let data = JSON.parse(body);
+                        let orders = [];
+                        console.log("Success: Retrieving orders - " + type);
+                        //console.log(data.result[buyOrSell].length);
+                        
+                        if (data.result[buyOrSell].length > 3){
+                            orders.push(data.result[buyOrSell][0], data.result[buyOrSell][1], data.result[buyOrSell][2]);
+                        } else {
+                            data.result[buyOrSell].map(x => orders.push(x));
+                        }
+                        //console.log('bitttttttttttttttt' + jsonFormat(orders));
+                        resolve(orders);
+                    } catch (error) {
+                        console.log("Error getting JSON response from", url, error); //Throws error
+                        reject(error);
+                    }
+
+                });
+            });
+        }
+	},
 	
 	// {
 

@@ -24,7 +24,7 @@ let coinNames = [];
 let LastResults = []; 
 let focusGroup = [];
 let id = 0;
-let target = 0.0001;
+let target = 0.01;
 let iteration = 1;
 
 let coin_prices = {}, numberOfRequests = 0, results = []; // GLOBAL variables to get pushed to browser.
@@ -90,7 +90,7 @@ async function computePrices(data) {
                                     results.push(
                                         {
                                             coin: coin,
-                                            spread: (arr[i][0] - arr[j][0]) / arr[j][0],
+                                            difference: (arr[i][0] - arr[j][0]) / arr[j][0],
                                             time: new Date(),
                                             market2: {
                                                 name: arr[i][1],
@@ -107,7 +107,7 @@ async function computePrices(data) {
                                     results.push(
                                         {//TODO, shouldnt have to create duplicate object for same markets
                                             coin: coin,
-                                            spread: (arr[j][0] - arr[i][0]) / arr[i][0],
+                                            difference: (arr[j][0] - arr[i][0]) / arr[i][0],
                                             time: new Date(),
                                             market2: {
                                                 name: arr[j][1],
@@ -164,7 +164,9 @@ async function computePrices(data) {
                                                 markets.map(function (a){
                                                     if (a.marketName == holder.market2.name){
                                                         promiseHolder1 = a.orderBook('buy', holder.coin).then(function(x){
-                                                            holder['top 3 buy orders'] = x;
+                                                            let ordersWithMarket = {};
+                                                            ordersWithMarket[a.marketName] = x
+                                                            holder['top 3 buy orders'] = ordersWithMarket;
                                                             
                                                             //fs.appendFileSync('buytime.js', jsonFormat(holder));
                                                         }).catch( function (e){
@@ -173,7 +175,9 @@ async function computePrices(data) {
                                                         })
                                                     } else if (a.marketName == holder.market1.name){
                                                         promiseHolder2 = a.orderBook('sell', holder.coin).then(function(x){
-                                                            holder['top 3 sell orders'] = x;
+                                                            let ordersWithMarket = {}
+                                                            ordersWithMarket[a.marketName] = x;
+                                                            holder['top 3 sell orders'] = ordersWithMarket;
                                                             //fs.appendFileSync('buytime.js', jsonFormat(holder));
                                                         }).catch( function (e){
                                                             throw e;
@@ -265,10 +269,10 @@ async function computePrices(data) {
 
                                 for (var q = 0; q < LastResults.length; q++ ){
                                     if (LastResults[q].coin == results[results.length - 1].coin){    
-                                        if (LastResults[q].market2.name == results[results.length - 1].market1.name && LastResults[q].market1.name == results[results.length - 1].market2.name && results[results.length - 1].spread > 0){
+                                        if (LastResults[q].market2.name == results[results.length - 1].market1.name && LastResults[q].market1.name == results[results.length - 1].market2.name && results[results.length - 1].difference > 0){
                                             results[results.length - 1].id = id;
                                             id++;
-                                            focusGroup.push([results[results.length - 1].coin, results[results.length - 1].market2.name,results[results.length - 1].market1.name, results[results.length - 1].spread, id - 1, results[results.length - 1].time]);
+                                            focusGroup.push([results[results.length - 1].coin, results[results.length - 1].market2.name,results[results.length - 1].market1.name, results[results.length - 1].difference, id - 1, results[results.length - 1].time]);
                                             console.log('Added in Whatch List: ' + focusGroup.length);
                                             fs.appendFile('intersection.js', jsonFormat([LastResults[q], results[results.length - 1]]), function(err){
                                                 if (err) throw err;
@@ -281,7 +285,7 @@ async function computePrices(data) {
                                
                                 // db.insert({
                                 //     coin: coin,
-                                //     lastSpread: arr[i][0] / arr[j][0],
+                                //     lastdifference: arr[i][0] / arr[j][0],
                                 //     market1: {
                                 //         name: arr[i][1],
                                 //         last: arr[i][0]
@@ -298,7 +302,7 @@ async function computePrices(data) {
                     }
                 }
                 results.sort(function (a, b) {
-                    return a.spread - b.spread;
+                    return a.difference - b.difference;
                 });
                 resolve();
             }
