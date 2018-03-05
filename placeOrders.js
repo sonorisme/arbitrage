@@ -1,4 +1,4 @@
-//poloniex throw error, bittrex don't, but output false in its returned json.
+//With dummy api secrets, poloniex throw error, bittrex don't, instead output false in its returned json.
 
 //result = [ array buyPairs, array sellPairs, string title, string sellerMarket, string buyerMarket]
 const config = require('./config.js');
@@ -9,11 +9,7 @@ const Bittrex = require('bittrex-wrapper');
 const bittrex = new Bittrex(config.credentials.bittrex.key , config.credentials.bittrex.secret);
 const Poloniex = require('poloniex-api-node');
 const poloniex = new Poloniex(config.credentials.poloniex.key, config.credentials.poloniex.secret);
-// var key = 'your-key';
-// var secret = 'your-secret';
-// var client_id = 'your-bitstamp-user-id';
-// var timeout = 10000;
-// var host = 'www.your.bitstamp.net';
+
 const Bitstamp = require('bitstamp');
 const bitstamp = new Bitstamp(config.credentials.bitstamp.key , config.credentials.bitstamp.secret);
 const fs = require('fs');
@@ -41,6 +37,7 @@ module.exports = function placeOrders(result, baseCoin){
 					fs.appendFileSync('demoForPlaceOrder.js', a + "\n")
 					return 1
 					
+
 				})
 					
 				

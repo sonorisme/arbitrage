@@ -4,42 +4,11 @@ if (config.tradeOnlyPair){
 } else{
     require('./settings2.js')(); //Includes settings file.
 }
-// if(markets){
 
-// }
 
 let sellerData = require('./sellerdata');
 let buyerData = require('./buyerdata');
 
-
-// function loopOpenOrders( buyOrSell, openOrders, exchange, targetCoin){
-// 	let i = 0;
-// 	let last
-// 	if (buyOrSell == 'buy'){
-// 		buy(openOrders, exchange, targetCoin)
-// 	} else {
-// 		sell(openOrders, exchange, targetCoin)
-// 	}
-// 	function buy(openOrders, exchange, targetCoin){
-// 		let [buyPairs, updatedOpenOrders] = openOrders_weBuy(openOrders, exchange, targetCoin)
-// 		if (i < 2){
-// 			i++
-// 			setTimeout(function(){			
-// 				buy( updatedOpenOrders, exchange, targetCoin)	
-// 			}, 5000)
-				
-// 		}
-// 	}
-// 	function sell(openOrders, exchange, targetCoin){
-// 		let [sellPairs, updatedOpenOrders] = openOrders_weSell(openOrders, exchange, targetCoin)
-// 		if (i < 2){
-// 			i++
-// 			setTimeout(function(){
-// 				sell( updatedOpenOrders, exchange, targetCoin)	
-// 			}, 5000)
-// 		}
-// 	}	
-// }
 
 openOrders_weBuy(sellerData, 'poloniex', 'LTC')
 function openOrders_weBuy(openOrders, sellerExchange, targetCoin){

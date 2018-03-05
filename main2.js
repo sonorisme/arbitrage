@@ -1,8 +1,3 @@
-/**
- * Created by Manu Masson on 6/27/2017.
- *
- */
-
 'use strict';
 
 console.log('Starting app...');

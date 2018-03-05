@@ -1,4 +1,4 @@
-//poloniex throw error, bittrex don't, but output false in its returned json.
+//With dummy api secrets, poloniex throw error, bittrex don't, instead output false in its returned json.
 
 //result = [ array buyPairs, array sellPairs, string title, string sellerMarket, string buyerMarket]
 const config = require('./config.js');
@@ -9,15 +9,12 @@ const Bittrex = require('bittrex-wrapper');
 const bittrex = new Bittrex(config.credentials.bittrex.key , config.credentials.bittrex.secret);
 const Poloniex = require('poloniex-api-node');
 const poloniex = new Poloniex(config.credentials.poloniex.key, config.credentials.poloniex.secret);
-// var key = 'your-key';
-// var secret = 'your-secret';
-// var client_id = 'your-bitstamp-user-id';
-// var timeout = 10000;
-// var host = 'www.your.bitstamp.net';
+
 const Bitstamp = require('bitstamp');
 const bitstamp = new Bitstamp(config.credentials.bitstamp.key , config.credentials.bitstamp.secret);
 
 const secondMatch = require('./secondMatch_experiment');
+
 
 //result: [buyPairs, sellPairs, title, holder['market1']['name'], holder['market2']['name']]
 module.exports = function placeOrders(result, baseCoin){
@@ -42,60 +39,10 @@ module.exports = function placeOrders(result, baseCoin){
 	}
 	switch(result[3]){
 		case 'bittrex':
-			// let failedOrders = [];
-			// let i = 0;
-			// let resultOfBuy = result[0].map(function(x){
-			// 	return new Promise(function(res, rej){
-			// 		let url = 'https://bittrex.com/api/v1.1/market/buylimit?apikey='+config.credentials.bittrex.key+'&market='+baseCoin+'-'+result[2]+'&quantity='+x[0]+'&rate='+x[1]+'&nonce='+i;;
-			// 		i++;
-			// 		request(url, function (error, response, body){
-			// 			if (error){
-			// 				rej(error);
-			// 				return;
-			// 			}
-			// 			let data = JSON.parse(body);
-			// 			if (!data.success){
-			// 				failedOrders.push(x);
-			// 			} 
-			// 			res(data);
-			// 		});
-			// 	})
-			// })
 			
-			// Promise.all(resultOfBuy).then(function(x){
-			// 	orderResults = x;
-			// 	failedOrdersOut = failedOrders;
-			// 	console.log(orderResults, failedOrdersOut);
-			// 	debugger;
-			// }).catch(function(err){
-				
-			// 	throw err;
-			// })
-
-			// break;
-			//let i = 0;
 			if (true){
 				let orderResults = [];
-				let resultOfBuy = result[0].map(function(x){
-					// return new Promise(function(res, rej){
-					// 	bittrex.tradebuy({
-					// 		MarketName: baseCoin+'-'+result[2],
-					// 	  	OrderType: 'LIMIT',
-					// 	  	Quantity: x[0],
-					// 	  	Rate: x[1],
-					// 	  	TimeInEffect: 'IMMEDIATE_OR_CANCEL', // supported options are 'IMMEDIATE_OR_CANCEL', 'GOOD_TIL_CANCELLED', 'FILL_OR_KILL'
-					// 	  	ConditionType: 'NONE', // supported options are 'NONE', 'GREATER_THAN', 'LESS_THAN'
-					// 	  	Target: 0, // used in conjunction with ConditionType
-					// 	}, function( data, err ) {
-					// 		if (err){
-
-					// 			rej(err);
-					// 			debugger;
-					// 		}
-					// 		res(data);
-					// 	});
-
-					// })
+				let resultOfBuy = result[0].map(function(x){				
 
 					return bittrex.marketBuyLimit(baseCoin+'-'+result[2], x[0], x[1]).then(function(y){
 				 		if (y.error){
