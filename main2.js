@@ -7,6 +7,7 @@
 
 console.log('Starting app...');
 
+var config = require('./config.js');
 const request = require('request'), Promise = require("bluebird"); //request for pulling JSON from api. Bluebird for Promises.
 
 const express = require('express'),
@@ -16,8 +17,13 @@ const express = require('express'),
 var jsonFormat = require('json-format');
 var fs = require('fs');
 var cryptos = require("./cryptos.js");
+var placeOrders = require('./placeOrders.js');
 
-require('./settings.js')(); //Includes settings file.
+if (config.tradeOnlyPair){
+    require('./settings3.js')(); 
+} else{
+    require('./settings2.js')(); //Includes settings file.
+}
 // let db = require('./db.js'); //Includes db.js
 
 
@@ -25,12 +31,16 @@ let coinNames = [];
 let LastResults = []; 
 let focusGroup = [];
 let id = 0;
-let target = 0.0001;
-let marketCap = 152025826;
+let target = config.target;//0.0005;
+let wantedProfit = config.wantedProfit;//0.4;
+let baseCoin = config.baseCoin;//'BTC';
+let budget = config.budget;//BTC
+let feeRate = config.feeRate;
+//let fund = 20000;
 let iteration = 1;
 
 let coin_prices = {}, numberOfRequests = 0, results = []; // GLOBAL variables to get pushed to browser.
-
+//coin_prices: coinname->exchangeName->lastPrice
 function getMarketData(market, coin_prices) {   //GET JSON DATA
     return new Promise(function (resolve, reject) {
         request(market.URL, function (error, response, body) {
@@ -65,47 +75,122 @@ function getMarketData(market, coin_prices) {   //GET JSON DATA
 }
 
 
-
-function matchOrders(buyOrders, sellOrders, title){
+function matchOrders(buyOrders, sellOrders, title, holder){
+ 
+    var a, b;
+ 
     var buyOrders = JSON.parse(JSON.stringify(buyOrders));
     var sellOrders = JSON.parse(JSON.stringify(sellOrders));
-    var totalBTCProfit, totalBTCCost;
-    buyHowMuch( 0, 0);
-    function buyHowMuch(x, y){
-        if (sellOrders[x] || buyOrders[y]){
-            fs.appendFileSync(title + '.txt', 'Total BTC cost: ' + totalBTCCost + ', Total BTC profit: ' + totalBTCProfit + ', buy ' + x +' orders and sell ' + y + ' orders.');
-        }
-        else if (sellOrders[x].Rate < buyOrders[y].Rate){
-            if (buyOrders[y].Quantity >= sellOrders[x].Quantity){
-                //we buy all first sell order
-                var a = 'Sell order Num: ' + x + ' | we buy ' + sellOrders[x].Quantity + 'amount of altcoin at the price of ' + sellOrders[x].Rate + 'BTC | Cost: ' + sellOrders[x].Quantity * sellOrders[x].Rate;
-                var b = 'Buy order Num: ' + y + ' | we sell ' + sellOrders[x].Quantity + 'amount of altcoin at the price of ' + buyOrders[y].Rate + 'BTC';
-                var c = 'Profit: ' + (sellOrders[x].Quantity * buyOrders[y].Rate - sellOrders[x].Quantity * sellOrders[x].Rate); 
-                fs.appendFileSync(title + '.txt', a + b + c);
-                buyOrders[y].Quantity -= sellOrders[x].Quantity;
-                totalBTCCost += sellOrders[x].Quantity * sellOrders[x].Rate;
-                totalBTCProfit += sellOrders[x].Quantity * buyOrders[y].Rate - sellOrders[x].Quantity * sellOrders[x].Rate
-                return buyHowMuch(x + 1, y)
+    var totalBTCProfit = 0;
+    var totalBTCCost = 0;
+    //var feeRate = 0.0001//0.0025;
+    let buyPairs = [];
+    let sellPairs = [];
+
+
+
+    return intermidiary( 0, 0);
+    // console.log(sellOrders[0], buyOrders[0])
+    // debugger;
+    function intermidiary(a, b){
+        return new Promise(function(resolve, reject){
+            buyHowMuch(a, b);
+
+            function buyHowMuch(x, y, z){
+                function writeTofile(){
+                    holder['market impact'] = (((baseCoinPrice * totalBTCCost) / holder['market cap usd']) * 100) + '%';
+                    let totalFees = (totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)
+
+                    //The latest compared order does not count into total orders we buy or sell
+                    if (z == 1){
+                        fs.appendFileSync('orders.js', 'Altcoin: ' + title + "\nTotal Cost: " + totalBTCCost + ' BTC (' + totalBTCCost * baseCoinPrice + " USD)\n" + "Total Profit: " + (totalBTCProfit-(totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)) + 'BTC (' + (totalBTCProfit - (totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)) * baseCoinPrice + " USD)\n" + 'Profit to Cost Ratio: ' + (totalBTCProfit/totalBTCCost) * 100 + "%\n" + 'Market Impact: ' + holder['market impact'] + "\n" + 'Buy ' + Number(x) +' orders and sell ' + Number(y + 1) + " orders.\n" + 'Buyer Market: ' + holder['market2']['name'] + ', Seller Market: ' + holder['market1']['name'] + "\n------------------------------\n");                
+                        // if ((totalBTCProfit/totalBTCCost) * 100 > wantedProfit){
+                            if (totalBTCProfit - totalFees > 0){
+                            fs.appendFileSync('finalResults.js', 'Altcoin: ' + title + "\nTotal Cost: " + totalBTCCost + 'BTC (' + totalBTCCost * baseCoinPrice + " USD)\n" + 'Toalt fees: ' + (totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate) + ' BTC (' + (totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate ) * baseCoinPrice + " USD)\nTotal Profit: " + (totalBTCProfit-(totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)) + 'BTC (' + (totalBTCProfit-(totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)) * baseCoinPrice + " USD)\n" + 'Profit to Cost Ratio: ' + (totalBTCProfit/totalBTCCost) * 100 + "%\n" + 'Market Impact: ' + holder['market impact'] + "\n" + 'Buy ' + Number(x) +' orders and sell ' + Number(y + 1) + " orders.\n" + 'Buyer Market: ' + holder['market2']['name'] + ', Seller Market: ' + holder['market1']['name'] + "\n------------------------------\n");
+                            a = Object.keys(holder['top 3 sell orders'])[0];
+                            b = Object.keys(holder['top 3 buy orders'])[0];
+                            holder['top 3 sell orders'][a] = holder['top 3 sell orders'][a].slice(0, 3);
+                            holder['top 3 buy orders'][b] = holder['top 3 buy orders'][b].slice(0, 3);
+                            fs.appendFileSync('buytime.js', jsonFormat(holder));
+                            resolve([buyPairs, sellPairs, title, holder['market1']['name'], holder['market2']['name']]);
+                        } else{
+                            reject('Wanted profit not met!')
+                        }
+                    } else if (z == 2) {
+                        fs.appendFileSync('orders.js', 'Altcoin: ' + title + "\nTotal Cost: " + totalBTCCost + 'BTC (' + totalBTCCost * baseCoinPrice + " USD)\n" + 'Total Profit: ' + (totalBTCProfit-(totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)) + 'BTC (' + (totalBTCProfit-(totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)) * baseCoinPrice + " USD)\n" + 'Profit to Cost Ratio: ' + (totalBTCProfit/totalBTCCost) * 100 + "%\n" +'Market Impact: ' + holder['market impact'] + "\n" + 'Buy ' + Number(x + 1) +' orders and sell ' + Number(y) + " orders.\n" + 'Buyer Market: ' + holder['market2']['name'] + ', Seller Market: ' + holder['market1']['name'] + "\n------------------------------\n");
+                        // if ((totalBTCProfit/totalBTCCost) * 100 > wantedProfit){
+                        if (totalBTCProfit - totalFees > 0){
+                            fs.appendFileSync('finalResults.js', 'Altcoin: ' + title + "\nTotal Cost: " + totalBTCCost + 'BTC (' + totalBTCCost * baseCoinPrice + " USD)\n" + 'Toalt fees: ' + (totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate) + 'BTC (' + (totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate ) * baseCoinPrice + " USD)\nTotal Profit: " + (totalBTCProfit-(totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)) + 'BTC (' + (totalBTCProfit-(totalBTCCost * feeRate + (Number(totalBTCCost) + Number(totalBTCProfit)) * feeRate)) * baseCoinPrice + " USD)\n" + 'Profit to Cost Ratio: ' + (totalBTCProfit/totalBTCCost) * 100 + "%\n" +'Market Impact: ' + holder['market impact'] + "\n" + 'Buy ' + Number(x + 1) +' orders and sell ' + Number(y) + " orders.\n" + 'Buyer Market: ' + holder['market2']['name'] + ', Seller Market: ' + holder['market1']['name'] + "\n------------------------------\n");
+                            a = Object.keys(holder['top 3 sell orders'])[0];
+                            b = Object.keys(holder['top 3 buy orders'])[0];
+                            holder['top 3 sell orders'][a] = holder['top 3 sell orders'][a].slice(0, 3);
+                            holder['top 3 buy orders'][b] = holder['top 3 buy orders'][b].slice(0, 3);
+                            fs.appendFileSync('buytime.js', jsonFormat(holder));
+                            resolve([buyPairs, sellPairs, title, holder['market1']['name'], holder['market2']['name']]);
+                        } else{
+                            reject('Wanted profit not met!');
+                        }
+                    } else {
+                        reject('Exceeded budget')
+                    }
+
+                }
                 
-            } else {
-                //we buy portion of sell orders
-                var a = 'Sell order Num: ' + x + ' | we buy ' + buyOrders[y].Quantity + 'amount of altcoin at the price of ' + sellOrders[x].Rate + 'BTC | Cost: ' + buyOrders[y].Quantity * sellOrders[x].Rate;
-                var b = 'Buy order Num: ' + y + ' | we sell ' + buyOrders[y].Quantity + 'amount of altcoin at the price of ' + buyOrders[y].Rate + 'BTC';
-                var c = 'Profit: ' + (buyOrders[y].Quantity * buyOrders[y].Rate - buyOrders[y].Quantity * sellOrders[x].Rate); 
-                fs.appendFileSync(title + '.txt', a + b + c);
-                totalBTCCost += buyOrders[y].Quantity * sellOrders[x].Rate;
-                totalBTCProfit += buyOrders[y].Quantity * buyOrders[y].Rate - buyOrders[y].Quantity * sellOrders[x].Rate;
-        
-                sellOrders[x].Quantity -= buyOrders[y].Quantity;
-                return buyHowMuch(x, y + 1);
+                if (!sellOrders[x] || !buyOrders[y]){
+                    writeTofile();
+                                 
+                }
+                else if (sellOrders[x].Rate < buyOrders[y].Rate){
+                    let checkLimitBuy = totalBTCCost + sellOrders[x].Quantity * sellOrders[x].Rate;
+                    let checkLimitSell = checkLimitBuy + totalBTCProfit + Number(sellOrders[x].Quantity * buyOrders[y].Rate - sellOrders[x].Quantity * sellOrders[x].Rate);                  
+                    // console.log(checkLimitBuy, checkLimitSell)
+                    // debugger;
+                    if (checkLimitBuy > budget || checkLimitSell > budget){
+                        // console.log(`this exceeds budget: ${checkLimitBuy}, ${checkLimitSell}`);
+                        // debugger;
+                        writeTofile();
+                        return;
+                    }
+
+                    if (buyOrders[y].Quantity >= sellOrders[x].Quantity){
+                        //we buy all first sell order
+                        var a = 'Seller Market Order Index: ' + x + ' | Order Type: Buy | Quantity: ' + sellOrders[x].Quantity + ' | Price: ' + sellOrders[x].Rate + ' BTC | Cost: ' + sellOrders[x].Quantity * sellOrders[x].Rate;
+                        var b = 'Buyer Market Order Index: ' + y + ' | Order Type: Sell | Quantity: ' + sellOrders[x].Quantity + ' | Price: ' + buyOrders[y].Rate + ' BTC | Earn: ' + sellOrders[x].Quantity * buyOrders[y].Rate;
+                        var c = 'Profit: ' + (sellOrders[x].Quantity * buyOrders[y].Rate - sellOrders[x].Quantity * sellOrders[x].Rate) + ' BTC'; 
+                        buyPairs.push([sellOrders[x].Quantity, sellOrders[x].Rate]);
+                        sellPairs.push([sellOrders[x].Quantity, buyOrders[y].Rate]);
+                        fs.appendFileSync('orders.js', a + "\n" + b + "\n" + c + "\n");
+                        buyOrders[y].Quantity -= sellOrders[x].Quantity;
+                        totalBTCCost += Number(sellOrders[x].Quantity * sellOrders[x].Rate);
+                        totalBTCProfit += Number(sellOrders[x].Quantity * buyOrders[y].Rate - sellOrders[x].Quantity * sellOrders[x].Rate);
+                        buyHowMuch(x + 1, y, 1)
+                        
+                    } else {
+                        //we buy portion of sell orders
+                        var a = 'Seller Market Order Index: ' + x + ' | Order Type: Buy | Quantity: ' + buyOrders[y].Quantity + ' | Price: ' + sellOrders[x].Rate + ' BTC | Cost: ' + buyOrders[y].Quantity * sellOrders[x].Rate;
+                        var b = 'Buyer Market Order Index: ' + y + ' | Order Type: Sell | Quantity: ' + buyOrders[y].Quantity + ' | Price: ' + buyOrders[y].Rate + ' BTC | Earn: ' + buyOrders[y].Quantity * buyOrders[y].Rate;
+                        var c = 'Profit: ' + (buyOrders[y].Quantity * buyOrders[y].Rate - buyOrders[y].Quantity * sellOrders[x].Rate) + ' BTC'; 
+                        buyPairs.push([buyOrders[y].Quantity, sellOrders[x].Rate]);
+                        sellPairs.push([buyOrders[y].Quantity, buyOrders[y].Rate]);
+                        fs.appendFileSync('orders.js', a + "\n" + b + "\n" + c + "\n");
+                        totalBTCCost += Number(buyOrders[y].Quantity * sellOrders[x].Rate);
+                        totalBTCProfit += Number(buyOrders[y].Quantity * buyOrders[y].Rate - buyOrders[y].Quantity * sellOrders[x].Rate);
+                
+                        sellOrders[x].Quantity -= buyOrders[y].Quantity;
+                        buyHowMuch(x, y + 1, 2);
+                    }
+                } else {
+                    //we dont buy
+                    if (x == 0 && y == 0){
+                        reject('No price gap!!!!!!!!!!!!!!!');
+                    } else{
+                        writeTofile();
+                       
+                    }
+                }
             }
-        } else {
-            //we dont buy
-            fs.appendFileSync(title + '.txt', 'Total BTC cost: ' + totalBTCCost + ', Total BTC profit: ' + totalBTCProfit + ', buy ' + x +' orders and sell ' + y + ' orders.');
-
-        }
+        })   
     }
-
 }
 
 
@@ -197,13 +282,16 @@ async function computePrices(data) {
                                                 //console.log('this is the message: '+jsonFormat(focusGroup[i]));
                                                 //console.log('index: ' + i + ', array length: ' + focusGroup.length + ', holder: ' + indexHolder);
                                                 //debugger;
-                                              
-                                             
+                                                
+
                                                 focusGroup.splice(i, 1);
                                                 //debugger;
                                                 //console.log(jsonFormat(focusGroup));
                                                 
                                                 console.log('deleted from Watch list(buy time): ' + focusGroup.length);
+
+                                                
+
 
                                                 let promiseHolder1, promiseHolder2, promiseHolder3;
                                                 
@@ -220,12 +308,10 @@ async function computePrices(data) {
                                                                 if(data[0]['market_cap_usd']){
                                                                     resolve(data[0]['market_cap_usd']);
                                                                 } else {
-                                                                    reject('No data for market cap!');
-                                                                    debugger;
+                                                                    reject('market cap error!');
                                                                 }    
                                                             } else {
                                                                 reject('market cap error!');
-                                                                debugger;
                                                             }
                                                             
                                                             
@@ -250,22 +336,30 @@ async function computePrices(data) {
                                                             let ordersWithMarket = {};
                                                             let cost = 0;
                                                             let quantity = 0;
+                                                            let buyOrderNum = 0
                                                             ordersWithMarket[a.marketName] = x
 
-
-                                                            x.forEach(function(x){
-                                                                cost = cost + Number(x.Quantity * x.Rate);
-                                                                quantity = quantity + Number(x.Quantity);
-                                                            });
-                                                            ordersWithMarket['buy total'] = cost;
-                                                            ordersWithMarket['Rate'] = cost/quantity;
-                                                            if (!ordersWithMarket['Rate']) debugger;
+                                                            // for (let i = 0; i < x.length; i++){
+                                                            //     if ((cost + Number(x[i].Quantity * x[i].Rate)) * baseCoinPrice > fund){
+                                                            //         buyOrderNum = i + 1;
+                                                            //         return;
+                                                            //     } else{
+                                                            //        cost = cost + Number(x[i].Quantity * x[i].Rate);
+                                                            //        quantity = quantity + Number(x[i].Quantity); 
+                                                            //        buyOrderNum = i + 1;
+                                                            //     }
+                                                     
+                                                            // }
+                                                         
+                                                            // ordersWithMarket['buy total'] = cost;
+                                                            // ordersWithMarket['Rate'] = cost/quantity;
+                                                            // ordersWithMarket['buy order total'] = buyOrderNum;
+                                                            //if (!ordersWithMarket['Rate']) debugger;
 
 
                                                             holder['top 3 buy orders'] = ordersWithMarket;
                                                             
                                                             
-                                                            //fs.appendFileSync('buytime.js', jsonFormat(holder));
                                                         }).catch( function (e){
                                                             throw e;
                                                             console.log('wrong with fetching orderbook: ' + e);
@@ -275,16 +369,33 @@ async function computePrices(data) {
                                                             let ordersWithMarket = {}
                                                             let cost = 0;
                                                             let quantity = 0;
+                                                            let sellOrderNum = 0;
                                                             ordersWithMarket[a.marketName] = x;
 
-                                                            x.forEach(function(x){
-                                                                cost = cost + Number(x.Quantity * x.Rate);
-                                                                quantity = quantity + Number(x.Quantity);
-                                                            });
-                                                            ordersWithMarket['sell total'] = cost;
-                                                            ordersWithMarket['Rate'] = cost/quantity;
-                                                            if (!ordersWithMarket['Rate']) debugger;
+                                                            //this is for compare with fund we have
+                                                            // for (let i = 0; i < x.length; i++){
+                                                            //     if ((cost + Number(x[i].Quantity * x[i].Rate)) * baseCoinPrice > fund){
+                                                            //         sellOrderNum = i + 1;
+                                                            //         return;
+                                                            //     } else{
+                                                            //        cost = cost + Number(x[i].Quantity * x[i].Rate);
+                                                            //        quantity = quantity + Number(x[i].Quantity); 
+                                                            //        sellOrderNum = i + 1;
+                                                            //     }
+                                                     
+                                                            // }
 
+
+                                                          
+                                                            // ordersWithMarket['sell total'] = cost;
+                                                            // ordersWithMarket['Rate'] = cost/quantity;
+                                                            // ordersWithMarket['sell order total'] = sellOrderNum;
+                                                            //if (!ordersWithMarket['Rate']) debugger;
+                                                            if(!ordersWithMarket){
+                                                                console.log(ordersWithMarket)
+                                                                debugger;
+                                                            }
+                                                            
 
                                                             holder['top 3 sell orders'] = ordersWithMarket;
                                                             
@@ -298,26 +409,29 @@ async function computePrices(data) {
                                                 Promise.all([promiseHolder1, promiseHolder2, promiseHolder3]).then(function(x){
                                                     var percent;
 
-                                                    if (holder['top 3 buy orders'].Rate <= holder['top 3 sell orders'].Rate) return new Promise.reject('Buy price is lower than sell!');
+                                                
+                                                    //if (holder['top 3 buy orders'].Rate <= holder['top 3 sell orders'].Rate) return new Promise.reject('Buy price is lower than sell!');
 
-                                                    if (holder['top 3 sell orders']['sell total'] >= holder['top 3 buy orders']['buy total']){
-                                                        percent = (holder['top 3 buy orders']['buy total'] * baseCoinPrice)/holder['market cap usd']
-                                                        holder['we can sell'] = holder['top 3 buy orders']['buy total'] * baseCoinPrice + ' usd';
-                                                    } else {
-                                                        percent = (holder['top 3 sell orders']['sell total'] * baseCoinPrice)/holder['market cap usd']
-                                                        holder['we can buy'] = holder['top 3 sell orders']['sell total'] * baseCoinPrice + ' usd';
-                                                    }
+                                                    // if (holder['top 3 sell orders']['sell total'] >= holder['top 3 buy orders']['buy total']){
+                                                    //     percent = (holder['top 3 buy orders']['buy total'] * baseCoinPrice)/holder['market cap usd']
+                                                    //     holder['we can sell'] = holder['top 3 buy orders']['buy total'] * baseCoinPrice + ' usd';
+                                                    // } else {
+                                                    //     percent = (holder['top 3 sell orders']['sell total'] * baseCoinPrice)/holder['market cap usd']
+                                                    //     holder['we can buy'] = holder['top 3 sell orders']['sell total'] * baseCoinPrice + ' usd';
+                                                    // }
                                                     
-                                                    holder['market impact'] = percent * 100 + '%';
+                                                    // holder['market impact'] = percent * 100 + '%';
+                                                   
+                                                    var a = Object.keys(holder['top 3 sell orders'])[0];
+                                                    var b = Object.keys(holder['top 3 buy orders'])[0];
+                                                    return matchOrders(holder['top 3 buy orders'][b], holder['top 3 sell orders'][a], holder.coin, holder);
                                                     
                                                 }).then(function(x){
-                                                    fs.appendFile('buytime.js', jsonFormat(holder), function(err){
-                                                        if (err){
-                                                            throw err;
-                                                        }
-                                                        console.log('Buy time!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-                                                    });
-                                            
+                                                    // focusGroup.splice(i, 1);
+                                                    // //console.log(jsonFormat(focusGroup));
+                                                    // //debugger;
+                                                    // console.log('deleted from Watch list(Placed order): ' + focusGroup.length);
+                                                    placeOrders(x, baseCoin);
                                                 }).catch(function(e){
                                                     console.log(e);
                                                 });
@@ -468,5 +582,5 @@ async function computePrices(data) {
 
         .catch(e => console.log(e));
 
-    setTimeout(main, 10000);
+    setTimeout(main, config.interval);
 })();

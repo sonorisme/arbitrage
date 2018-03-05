@@ -25,7 +25,10 @@
 let request = require('request');
 let jsonFormat = require('json-format');
 var cryptos = require("./cryptos.js");
-let baseCoin = 'BTC';
+var config = require('./config.js');
+let baseCoin = config.baseCoin;//'BTC';
+let orderNumber = config.orderNumber; //500
+let targetCoin = config.targetCoin;
 let baseCoinPrice = new Promise(function (res, rej) {
     request("https://api.coinmarketcap.com/v1/ticker/" + cryptos[baseCoin], function (error, response, body) {
             
@@ -73,6 +76,8 @@ let markets = [
     //                     }
     //                 }
     //                 res(coin_prices);
+
+
     //             }
     //             catch (err) {
     //                 console.log(err);
@@ -82,21 +87,87 @@ let markets = [
     //     }
     //
     // },
+
     {
-        marketName: 'bittrex',
-        URL: 'https://bittrex.com/api/v1.1/public/getmarketsummaries',
+        marketName: 'bitstamp',
+        URL: 'https://www.bitstamp.net/api/v2/ticker/' + targetCoin.toLowerCase() + baseCoin.toLowerCase(),
         toBTCURL: false,
         pairURL : '',
         last: function (data, coin_prices) { //Where to find the last price of coin in JSON data
             return new Promise(function (res, rej) {
                 try {
-                    for (let obj of data.result) {
-                        if(obj["MarketName"].includes(baseCoin + '-')) {
-                            let coinName = obj["MarketName"].replace(baseCoin + "-", '');
-                            if (!coin_prices[coinName]) coin_prices[coinName] = {};
-                            coin_prices[coinName].bittrex = obj.Last;
+
+                    let coinName = targetCoin
+                    if (!coin_prices[coinName]) coin_prices[coinName] = {};
+                    coin_prices[coinName].bittrex = data.Last;
+                                           
+                    res(coin_prices);
+                }
+                catch (err) {
+                    console.log(err);
+                    rej(err);
+                }
+
+            })
+        },
+        orderBook: function(type, targetCoin){
+            let url = 'https://www.bitstamp.net/api/v2/order_book/' + targetCoin.toLowerCase() + baseCoin.toLowerCase();
+            
+            return new Promise(function (resolve, reject) {
+                request(url, function (error, response, body) {
+                    try {
+                        let data = JSON.parse(body);
+                        let orders = [];
+                        console.log("Success: Retrieving orders - " + type);
+                        
+                        if (type == 'buy'){
+                            let x = [];
+                            for (var i = 0; i < data.bids.length; i++){
+                                x[i] = {};
+                                x[i].Quantity = data.bids[i][1];
+                                x[i].Rate = data.bids[i][0];
+                                orders.push(x[i]);
+                            }
+                            
+                        } else {
+                        
+                            let x = [];
+                            for (var i = 0; i < data.asks.length; i++){
+                                x[i] = {};
+                                x[i].Quantity = data.asks[i][1];
+                                x[i].Rate = data.asks[i][0];
+                                orders.push(x[i]);
+                            }
+                            
                         }
+                        //console.log('bitttttttttttttttt' + jsonFormat(orders));
+                        resolve(orders);
+                    } catch (error) {
+                        console.log("Error getting JSON response from", url, error); //Throws error
+                        reject(error);
                     }
+
+                });
+            });
+        }
+    },
+
+
+
+
+    {
+        marketName: 'bittrex',
+        URL: 'https://bittrex.com/api/v1.1/public/getticker?market=' + baseCoin + '-' + targetCoin.toUpperCase(),
+        toBTCURL: false,
+        pairURL : '',
+        last: function (data, coin_prices) { //Where to find the last price of coin in JSON data
+            return new Promise(function (res, rej) {
+                try {
+
+                    let coinName = targetCoin
+                    if (!coin_prices[coinName]) coin_prices[coinName] = {};
+                    coin_prices[coinName].bittrex = data.result.Last;
+                                           
                     res(coin_prices);
                 }
                 catch (err) {
@@ -120,8 +191,10 @@ let markets = [
                         let data = JSON.parse(body);
                         let orders = [];
                         console.log("Success: Retrieving orders - " + type);
-                        if (data.result.length > 3){
-                            orders.push(data.result[0], data.result[1], data.result[2]);
+                        if (data.result.length > orderNumber){
+                            for (let i = 0; i < orderNumber; i++){
+                                orders.push(data.result[i]);
+                            }
                         } else {
                             data.result.map(x => orders.push(x));
                         }
@@ -136,8 +209,6 @@ let markets = [
             });
         }
     },
-
-
 
     // {
     //     marketName: 'btc38',
@@ -207,13 +278,16 @@ let markets = [
         last: function (data, coin_prices) { //Where to find the last price of coin in JSON data
             return new Promise(function (res, rej) {
                 try {
-                    for (var obj in data) {
-                        if(obj.includes(baseCoin + '_')&&obj!=="BTC_EMC2") {
-                            let coinName = obj.replace(baseCoin + "_", '');
-                            if (!coin_prices[coinName]) coin_prices[coinName] = {};
-                            coin_prices[coinName].poloniex = data[obj].last;
-                        }
+                   
+                    let pair = baseCoin + '_' + targetCoin
+                    if (data[pair]){
+                        let coinName = targetCoin
+                        if (!coin_prices[coinName]) coin_prices[coinName] = {};
+                        coin_prices[coinName].poloniex = data[pair].last;
+                    } else{
+                        throw new Error('Poloniex does not have this pair.')
                     }
+
                     res(coin_prices);
                 }
                 catch (err) {
@@ -224,7 +298,7 @@ let markets = [
             })
         },
         orderBook: function(type, targetCoin){
-            let url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair=' + baseCoin + '_' + targetCoin.toUpperCase() + '&depth=3';
+            let url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair=' + baseCoin + '_' + targetCoin.toUpperCase() + '&depth=' + orderNumber;
       
             return new Promise(function (resolve, reject) {
                 request(url, function (error, response, body) {
@@ -233,41 +307,24 @@ let markets = [
                         let orders = [];
                         console.log("Success: Retrieving orders - " + type);
                         if (type == 'buy'){
-                            if (data.bids.length > 3){
-                                let x = [];
-                                for (var i = 0; i < 3; i++){
-                                    x[i] = {};
-                                    x[i].Quantity = data.bids[i][1];
-                                    x[i].Rate = data.bids[i][0];
-                                    order.push(x[i]);
-                                }
-                            } else {
-                                let x = [];
-                                for (var i = 0; i < data.bids.length; i++){
-                                    x[i] = {};
-                                    x[i].Quantity = data.bids[i][1];
-                                    x[i].Rate = data.bids[i][0];
-                                    orders.push(x[i]);
-                                }
+                            let x = [];
+                            for (var i = 0; i < data.bids.length; i++){
+                                x[i] = {};
+                                x[i].Quantity = data.bids[i][1];
+                                x[i].Rate = data.bids[i][0];
+                                orders.push(x[i]);
                             }
+                            
                         } else {
-                            if (data.asks.length > 3){
-                                let x = [];
-                                for (var i = 0; i < 3; i++){
-                                    x[i] = {};
-                                    x[i].Quantity = data.asks[i][1];
-                                    x[i].Rate = data.asks[i][0];
-                                    order.push(x[i]);
-                                }
-                            } else {
-                                let x = [];
-                                for (var i = 0; i < data.asks.length; i++){
-                                    x[i] = {};
-                                    x[i].Quantity = data.asks[i][1];
-                                    x[i].Rate = data.asks[i][0];
-                                    orders.push(x[i]);
-                                }
+                       
+                            let x = [];
+                            for (var i = 0; i < data.asks.length; i++){
+                                x[i] = {};
+                                x[i].Quantity = data.asks[i][1];
+                                x[i].Rate = data.asks[i][0];
+                                orders.push(x[i]);
                             }
+                            
                         }
                         //console.log('Poooooooooooooooo' + jsonFormat(orders));
                         
@@ -310,65 +367,67 @@ let markets = [
 	// 	},
 	// },
     
-    {
-		marketName: 'bleutrade',
-		URL: 'https://bleutrade.com/api/v2/public/getmarketsummaries', //URL To Fetch API From.
-		toBTCURL: false, //URL, if needed for an external bitcoin price api.
-        pairURL : '',
-        last: function (data, coin_prices) { //Get the last price of coins in JSON data
-			return new Promise(function (res, rej) {
-				try {
-					for (let obj of data.result) {
-						if(obj["MarketName"].includes('_' + baseCoin)) {
-							let coinName = obj["MarketName"].replace("_" + baseCoin, '');
-							if (!coin_prices[coinName]) coin_prices[coinName] = {};
-							coin_prices[coinName].bleutrade = obj.Last;
-                        }
-                    }
-                    res(coin_prices);
+ //    {
+	// 	marketName: 'bleutrade',
+	// 	URL: 'https://bleutrade.com/api/v2/public/getticker?market=' + targetCoin + '_' + baseCoin, //URL To Fetch API From.
+	// 	toBTCURL: false, //URL, if needed for an external bitcoin price api.
+ //        pairURL : '',
+ //        last: function (data, coin_prices) { //Get the last price of coins in JSON data
+	// 		return new Promise(function (res, rej) {
+	// 			try {
+				
+ //                    let coinName = targetCoin
+ //                    if (!coin_prices[coinName]) coin_prices[coinName] = {};
+ //                    coin_prices[coinName].bittrex = data.result.Last;
+
+
+ //                    res(coin_prices);
 					
-                }
-                catch (err) {
-                    console.log(err);
-                    rej(err);
-                }
+ //                }
+ //                catch (err) {
+ //                    console.log(err);
+ //                    rej(err);
+ //                }
 
-            })
-		},
-        orderBook: function(type, targetCoin){
-            let url = '';
-            let buyOrSell = ''
-            if (type == 'buy'){
-                url = 'https://bleutrade.com/api/v2/public/getorderbook?market=' + targetCoin.toUpperCase() + '_' + baseCoin + '&type=buy&depth=3';
-                buyOrSell = 'buy';
-            } else {
-                url = 'https://bleutrade.com/api/v2/public/getorderbook?market=' + targetCoin.toUpperCase() + '_' + baseCoin + '&type=sell&depth=3';
-                buyOrSell = 'sell';
-            }
-            return new Promise(function (resolve, reject) {
-                request(url, function (error, response, body) {
-                    try {
-                        let data = JSON.parse(body);
-                        let orders = [];
-                        console.log("Success: Retrieving orders - " + type);
-                        //console.log(data.result[buyOrSell].length);
+ //            })
+	// 	},
+ //        orderBook: function(type, targetCoin){
+ //            let url = '';
+ //            let buyOrSell = ''
+ //            if (type == 'buy'){
+ //                url = 'https://bleutrade.com/api/v2/public/getorderbook?market=' + targetCoin.toUpperCase() + '_' + baseCoin + '&type=buy&depth=' + orderNumber;
+ //                buyOrSell = 'buy';
+ //            } else {
+ //                url = 'https://bleutrade.com/api/v2/public/getorderbook?market=' + targetCoin.toUpperCase() + '_' + baseCoin + '&type=sell&depth=' + orderNumber;
+ //                buyOrSell = 'sell';
+ //            }
+ //            return new Promise(function (resolve, reject) {
+ //                request(url, function (error, response, body) {
+ //                    try {
+ //                        let data = JSON.parse(body);
+ //                        let orders = [];
+ //                        console.log("Success: Retrieving orders - " + type);
+ //                        //console.log(data.result[buyOrSell].length);
                         
-                        if (data.result[buyOrSell].length > 3){
-                            orders.push(data.result[buyOrSell][0], data.result[buyOrSell][1], data.result[buyOrSell][2]);
-                        } else {
-                            data.result[buyOrSell].map(x => orders.push(x));
-                        }
-                        //console.log('bitttttttttttttttt' + jsonFormat(orders));
-                        resolve(orders);
-                    } catch (error) {
-                        console.log("Error getting JSON response from", url, error); //Throws error
-                        reject(error);
-                    }
+ //                        if (data.result[buyOrSell].length > orderNumber){
+ //                            for (let i = 0; i < orderNumber; i++){
+ //                                orders.push(data.result[buyOrSell][i]);
+ //                            }
+ //                            orders.push(data.result[buyOrSell][0], data.result[buyOrSell][1], data.result[buyOrSell][2]);
+ //                        } else {
+ //                            data.result[buyOrSell].map(x => orders.push(x));
+ //                        }
+ //                        //console.log('bitttttttttttttttt' + jsonFormat(orders));
+ //                        resolve(orders);
+ //                    } catch (error) {
+ //                        console.log("Error getting JSON response from", url, error); //Throws error
+ //                        reject(error);
+ //                    }
 
-                });
-            });
-        }
-	},
+ //                });
+ //            });
+ //        }
+	// },
 	
 	// {
 
@@ -415,7 +474,7 @@ for(let i = 0; i < markets.length; i++) { // Loop except cryptowatch
 }
 console.log("Markets:", marketNames);
 module.exports = function () {
-    var xx;
+
     this.markets = markets;
     this.marketNames = marketNames;
     baseCoinPrice.then(function(x){
