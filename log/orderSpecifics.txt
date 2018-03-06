@@ -1,0 +1,106 @@
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 9.13629502 | Price: 0.01832000 BTC | Cost: 0.1673769247664
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 9.13629502 | Price: 0.01834218 BTC | Earn: 0.1675795677899436
+Profit: 0.0002026430235435861 BTC
+Altcoin: LTC
+Total Cost: 0.1673769247664 BTC (1936.4840687773417 USD)
+Total Profit: -0.0006347482078472729BTC (-7.343782865509809 USD)
+Profit to Cost Ratio: 0.12106986899562487%
+Market Impact: 0.00001639525592048976%
+Buy 1 orders and sell 1 orders.
+Buyer Market: bittrex, Seller Market: poloniex
+------------------------------
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 9.74456515 | Price: 0.01832000 BTC | Cost: 0.17852043354799998
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 9.74456515 | Price: 0.01834218 BTC | Earn: 0.17873656800302698
+Profit: 0.00021613445502699502 BTC
+Altcoin: LTC
+Total Cost: 0.17852043354799998 BTC (2065.4100079769405 USD)
+Total Profit: -0.0006770080488505725BTC (-7.8327123219815835 USD)
+Profit to Cost Ratio: 0.12106986899563042%
+Market Impact: 0.000017486808286991553%
+Buy 1 orders and sell 1 orders.
+Buyer Market: bittrex, Seller Market: poloniex
+------------------------------
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 9.74456515 | Price: 0.01832000 BTC | Cost: 0.17852043354799998
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 9.74456515 | Price: 0.01834218 BTC | Earn: 0.17873656800302698
+Profit: 0.00021613445502699502 BTC
+Altcoin: LTC
+Total Cost: 0.17852043354799998 BTC (2065.4100079769405 USD)
+Total Profit: -0.0006770080488505725BTC (-7.8327123219815835 USD)
+Profit to Cost Ratio: 0.12106986899563042%
+Market Impact: 0.000017486808286991553%
+Buy 1 orders and sell 1 orders.
+Buyer Market: bittrex, Seller Market: poloniex
+------------------------------
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 5.72134652 | Price: 0.01832000 BTC | Cost: 0.1048150682464
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 5.72134652 | Price: 0.01834219 BTC | Earn: 0.1049420249256788
+Profit: 0.00012695667927881127 BTC
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 4.02321863 | Price: 0.01832000 BTC | Cost: 0.07370536530159999
+Buyer Market Order Index: 1 | Order Type: Sell | Quantity: 4.02321863 | Price: 0.01834218 BTC | Earn: 0.07379460029081339
+Profit: 0.00008923498921339923 BTC
+Altcoin: LTC
+Total Cost: 0.17852043354799998 BTC (2065.4100079769405 USD)
+Total Profit: -0.00067695097841902BTC (-7.832052039916694 USD)
+Profit to Cost Ratio: 0.12110191768836456%
+Market Impact: 0.000017543616402193584%
+Buy 1 orders and sell 2 orders.
+Buyer Market: bittrex, Seller Market: poloniex
+------------------------------
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 5.3961103 | Price: 0.01832000 BTC | Cost: 0.098856740696
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 5.3961103 | Price: 0.01834219 BTC | Earn: 0.09897648038355701
+Profit: 0.00011973968755700504 BTC
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 4.3484548499999995 | Price: 0.01832000 BTC | Cost: 0.07966369285199999
+Buyer Market Order Index: 1 | Order Type: Sell | Quantity: 4.3484548499999995 | Price: 0.01834218 BTC | Earn: 0.07976014158057299
+Profit: 0.00009644872857299258 BTC
+Altcoin: LTC
+Total Cost: 0.178520433548 BTC (2065.410007976941 USD)
+Total Profit: -0.0006769542226503274BTC (-7.832089574375229 USD)
+Profit to Cost Ratio: 0.12110009584525772%
+Market Impact: 0.00001754361640219359%
+Buy 1 orders and sell 2 orders.
+Buyer Market: bittrex, Seller Market: poloniex
+------------------------------
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 5.3961103 | Price: 0.01832000 BTC | Cost: 0.098856740696
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 5.3961103 | Price: 0.01834219 BTC | Earn: 0.09897648038355701
+Profit: 0.00011973968755700504 BTC
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 4.34845239 | Price: 0.01832000 BTC | Cost: 0.0796636477848
+Buyer Market Order Index: 1 | Order Type: Sell | Quantity: 4.34845239 | Price: 0.01834218 BTC | Earn: 0.0797600964588102
+Profit: 0.00009644867401019386 BTC
+Altcoin: LTC
+Total Cost: 0.1785203884808 BTC (2065.409486567464 USD)
+Total Profit: -0.0006769540517407191BTC (-7.832087597019425 USD)
+Profit to Cost Ratio: 0.12110009585288915%
+Market Impact: 0.000017543611973335483%
+Buy 1 orders and sell 2 orders.
+Buyer Market: bittrex, Seller Market: poloniex
+------------------------------
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 23.90659151 | Price: 0.01828695 BTC | Cost: 0.43717864361379444
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 23.90659151 | Price: 0.01831834 BTC | Earn: 0.43792907152129334
+Profit: 0.0007504279074989073 BTC
+Seller Market Order Index: 1 | Order Type: Buy | Quantity: 0.31340450000000075 | Price: 0.01828788 BTC | Cost: 0.005731503887460013
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 0.31340450000000075 | Price: 0.01831834 BTC | Earn: 0.005741050188530014
+Profit: 0.000009546301070000561 BTC
+Seller Market Order Index: 1 | Order Type: Buy | Quantity: 0.0580017 | Price: 0.01828788 BTC | Cost: 0.001060728129396
+Buyer Market Order Index: 1 | Order Type: Sell | Quantity: 0.0580017 | Price: 0.0183 BTC | Earn: 0.00106143111
+Profit: 7.029806040001214e-7 BTC
+Altcoin: LTC
+Total Cost: 0.44397087563065046BTC (5127.952407709139 USD)
+Total Profit: -0.0014610788819532769BTC (-16.87575330233674 USD)
+Profit to Cost Ratio: 0.1713349300429636%
+Market Impact: 0.000043718965423991703%
+Buy 2 orders and sell 2 orders.
+Buyer Market: bittrex, Seller Market: poloniex
+------------------------------
+Seller Market Order Index: 0 | Order Type: Buy | Quantity: 206.38129203 | Price: 0.01829001 BTC | Cost: 3.77471589504162
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 206.38129203 | Price: 0.01831834 BTC | Earn: 3.7805626770448297
+Profit: 0.005846782003209761 BTC
+Seller Market Order Index: 1 | Order Type: Buy | Quantity: 23.7149 | Price: 0.01830200 BTC | Cost: 0.43403009979999996
+Buyer Market Order Index: 0 | Order Type: Sell | Quantity: 23.7149 | Price: 0.01831834 BTC | Earn: 0.434417601266
+Profit: 0.00038750146600002866 BTC
+Altcoin: LTC
+Total Cost: 4.20874599484162 BTC (48670.780433547465 USD)
+Total Profit: -0.014825032213671336BTC (-171.43963752533807 USD)
+Profit to Cost Ratio: 0.14812686431660962%
+Market Impact: 0.00041501067022049195%
+Buy 2 orders and sell 1 orders.
+Buyer Market: bittrex, Seller Market: poloniex
+------------------------------

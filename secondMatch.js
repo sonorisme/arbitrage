@@ -1,16 +1,10 @@
 const config = require('./config')
 if (config.tradeOnlyPair){
-    require('./settings3.js')(); 
+    require('./settings2.js')(); 
 } else{
-    require('./settings2.js')(); //Includes settings file.
+    require('./settings1.js')(); 
 }
 
-
-let sellerData = require('./sellerdata');
-let buyerData = require('./buyerdata');
-
-
-openOrders_weBuy(sellerData, 'poloniex', 'LTC')
 function openOrders_weBuy(openOrders, sellerExchange, targetCoin){
 	var openOrders = JSON.parse(JSON.stringify(openOrders));
 	for (let i = 0; i < markets.length; i++){
@@ -54,9 +48,6 @@ function openOrders_weBuy(openOrders, sellerExchange, targetCoin){
 				}
 				else if (newOrders[indexNew].Rate <= openOrders[indexFail].Rate){
 					if ( newOrders[indexNew].Quantity >= openOrders[indexFail].Quantity){
-						// buy x.Rate y.Quantity
-						// some indexNew for x
-						// x vs openOrders[i + 1]
 
 						selectOrders.push({Quantity: openOrders[indexFail].Quantity, Rate: newOrders[indexNew].Rate});
 						newOrders[indexNew].Quantity -= openOrders[indexFail].Quantity;
@@ -64,9 +55,7 @@ function openOrders_weBuy(openOrders, sellerExchange, targetCoin){
 
 						return secondMatch(indexNew, indexFail + 1)
 					} else {
-						// buy x.Rate x.Quantity
-						// some indexNew for y
-						// newOrders[1] vs openOrders
+					
 						selectOrders.push({Quantity: newOrders[indexNew].Quantity, Rate: newOrders[indexNew].Rate});
 						newOrders[indexNew].Quantity -= newOrders[indexNew].Quantity;
 						openOrders[indexFail].Quantity -= newOrders[indexNew].Quantity; 
@@ -93,7 +82,6 @@ function openOrders_weBuy(openOrders, sellerExchange, targetCoin){
 }
 
 
-//openOrders_weSell(buyerData, 'poloniex', 'LTC')
 function openOrders_weSell(openOrders, buyerExchange, targetCoin){
 	var openOrders = JSON.parse(JSON.stringify(openOrders));
 
@@ -112,15 +100,14 @@ function openOrders_weSell(openOrders, buyerExchange, targetCoin){
 			for (let i = 0; i < openOrders.length; i++){
 				if (newOrders[0].Rate >= openOrders[i].Rate){
 					if ( newOrders[0].Quantity >= openOrders[i].Quantity){
-						//sell new.Rate open.Quantity
-						//quantity, rate
+						
 						selectOrders.push([openOrders[i].Quantity, newOrders[0].Rate]);
 						newOrders[0].Quantity = newOrders[0].Quantity - openOrders[i].Quantity;
 						openOrders[i].Quantity = openOrders[i].Quantity - openOrders[i].Quantity; 
 				
 						return secondMatch(0, i + 1)
 					} else {
-						//buy new.Rate new.Quantity
+						
 						selectOrders.push([newOrders[0].Quantity, newOrders[0].Rate]);
 						newOrders[0].Quantity = newOrders[0].Quantity - newOrders[0].Quantity;
 						openOrders[i].Quantity = openOrders[i].Quantity - newOrders[0].Quantity; 
@@ -140,9 +127,6 @@ function openOrders_weSell(openOrders, buyerExchange, targetCoin){
 				}
 				else if (newOrders[indexNew].Rate >= openOrders[indexFail].Rate){
 					if ( newOrders[indexNew].Quantity >= openOrders[indexFail].Quantity){
-						// buy x.Rate y.Quantity
-						// some indexNew for x
-						// x vs openOrders[i + 1]
 
 						selectOrders.push([openOrders[indexFail].Quantity, newOrders[indexNew].Rate]);
 						newOrders[indexNew].Quantity = newOrders[indexNew].Quantity - openOrders[indexFail].Quantity;
@@ -150,9 +134,7 @@ function openOrders_weSell(openOrders, buyerExchange, targetCoin){
 
 						return secondMatch(indexNew, indexFail + 1)
 					} else {
-						// buy x.Rate x.Quantity
-						// some indexNew for y
-						// newOrders[1] vs openOrders
+					
 						selectOrders.push([newOrders[indexNew].Quantity, newOrders[indexNew].Rate]);
 						newOrders[indexNew].Quantity = newOrders[indexNew].Quantity - newOrders[indexNew].Quantity;
 						openOrders[indexFail].Quantity = openOrders[indexFail].Quantity - newOrders[indexNew].Quantity; 

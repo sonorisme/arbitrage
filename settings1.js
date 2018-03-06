@@ -2,9 +2,8 @@ let request = require('request');
 let jsonFormat = require('json-format');
 var cryptos = require("./cryptos.js");
 var config = require('./config.js');
-let baseCoin = config.baseCoin;//'BTC';
-let orderNumber = config.orderNumber; //500
-let targetCoin = config.targetCoin;
+let baseCoin = config.baseCoin//'BTC';
+let orderNumber = config.orderNumber //500
 let baseCoinPrice = new Promise(function (res, rej) {
     request("https://api.coinmarketcap.com/v1/ticker/" + cryptos[baseCoin], function (error, response, body) {
             
@@ -25,89 +24,24 @@ let baseCoinPrice = new Promise(function (res, rej) {
 let markets = [
 
     {
-        marketName: 'bitstamp',
-        URL: 'https://www.bitstamp.net/api/v2/ticker/' + targetCoin.toLowerCase() + baseCoin.toLowerCase(),
-        toBTCURL: false,
-        pairURL : '',
-        last: function (data, coin_prices) { //To find the last price of coin in JSON data
-            return new Promise(function (res, rej) {
-                try {
-
-                    let coinName = targetCoin
-                    if (!coin_prices[coinName]) coin_prices[coinName] = {};
-                    coin_prices[coinName].bittrex = data.Last;
-                                           
-                    res(coin_prices);
-                }
-                catch (err) {
-                    console.log(err);
-                    rej(err);
-                }
-
-            })
-        },
-        orderBook: function(type, targetCoin){
-            let url = 'https://www.bitstamp.net/api/v2/order_book/' + targetCoin.toLowerCase() + baseCoin.toLowerCase();
-            
-            return new Promise(function (resolve, reject) {
-                request(url, function (error, response, body) {
-                    try {
-                        let data = JSON.parse(body);
-                        let orders = [];
-                        console.log("Success: Retrieving orders - " + type);
-                        
-                        if (type == 'buy'){
-                            let x = [];
-                            for (var i = 0; i < data.bids.length; i++){
-                                x[i] = {};
-                                x[i].Quantity = data.bids[i][1];
-                                x[i].Rate = data.bids[i][0];
-                                orders.push(x[i]);
-                            }
-                            
-                        } else {
-                        
-                            let x = [];
-                            for (var i = 0; i < data.asks.length; i++){
-                                x[i] = {};
-                                x[i].Quantity = data.asks[i][1];
-                                x[i].Rate = data.asks[i][0];
-                                orders.push(x[i]);
-                            }
-                            
-                        }
-                        resolve(orders);
-                    } catch (error) {
-                        console.log("Error getting JSON response from", url, error); 
-                        reject(error);
-                    }
-
-                });
-            });
-        }
-    },
-
-
-
-
-    {
         marketName: 'bittrex',
-        URL: 'https://bittrex.com/api/v1.1/public/getticker?market=' + baseCoin + '-' + targetCoin.toUpperCase(),
+        URL: 'https://bittrex.com/api/v1.1/public/getmarketsummaries',
         toBTCURL: false,
         pairURL : '',
-        last: function (data, coin_prices) { //To find the last price of coin in JSON data
+        last: function (data, coin_prices) { //Where to find the last price of coin in JSON data
             return new Promise(function (res, rej) {
                 try {
-
-                    let coinName = targetCoin
-                    if (!coin_prices[coinName]) coin_prices[coinName] = {};
-                    coin_prices[coinName].bittrex = data.result.Last;
-
+                    for (let obj of data.result) {
+                        if(obj["MarketName"].includes(baseCoin + '-')) {
+                            let coinName = obj["MarketName"].replace(baseCoin + "-", '');
+                            if (!coin_prices[coinName]) coin_prices[coinName] = {};
+                            coin_prices[coinName].bittrex = obj.Last;
+                        }
+                    }
                     res(coin_prices);
                 }
                 catch (err) {
                     console.log(err);
-                   
                     rej(err);
                 }
 
@@ -136,7 +70,7 @@ let markets = [
                         }
                         resolve(orders);
                     } catch (error) {
-                        console.log("Error getting JSON response from", url, error); 
+                        console.log("Error getting JSON response from", url, error); //Throws error
                         reject(error);
                     }
 
@@ -153,16 +87,13 @@ let markets = [
         last: function (data, coin_prices) { //To find the last price of coin in JSON data
             return new Promise(function (res, rej) {
                 try {
-                   
-                    let pair = baseCoin + '_' + targetCoin
-                    if (data[pair]){
-                        let coinName = targetCoin
-                        if (!coin_prices[coinName]) coin_prices[coinName] = {};
-                        coin_prices[coinName].poloniex = data[pair].last;
-                    } else{
-                        throw new Error('Poloniex does not have this pair.')
+                    for (var obj in data) {
+                        if(obj.includes(baseCoin + '_')&&obj!=="BTC_EMC2") {
+                            let coinName = obj.replace(baseCoin + "_", '');
+                            if (!coin_prices[coinName]) coin_prices[coinName] = {};
+                            coin_prices[coinName].poloniex = data[obj].last;
+                        }
                     }
-
                     res(coin_prices);
                 }
                 catch (err) {
@@ -212,8 +143,8 @@ let markets = [
             });
         }
 
-    },
-    
+    }
+
 ];
 
 let marketNames = [];
@@ -222,7 +153,7 @@ for(let i = 0; i < markets.length; i++) {
 }
 console.log("Markets:", marketNames);
 module.exports = function () {
-
+    var xx;
     this.markets = markets;
     this.marketNames = marketNames;
     baseCoinPrice.then(function(x){

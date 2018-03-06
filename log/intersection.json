@@ -1,0 +1,55 @@
+[
+	{
+		"coin": "LTC",
+		"difference": null,
+		"time": "2018-03-05T06:12:09.083Z",
+		"market2": {
+			"name": "poloniex",
+			"last": "0.01828695"
+		},
+		"market1": {
+			"name": "bittrex"
+		}
+	},
+	{
+		"coin": "LTC",
+		"difference": 0.0017165246254842496,
+		"time": "2018-03-05T06:12:09.252Z",
+		"market2": {
+			"name": "bittrex",
+			"last": 0.01831834
+		},
+		"market1": {
+			"name": "poloniex",
+			"last": "0.01828695"
+		},
+		"id": 0
+	}
+][
+	{
+		"coin": "LTC",
+		"difference": null,
+		"time": "2018-03-05T06:36:26.393Z",
+		"market2": {
+			"name": "poloniex",
+			"last": "0.01828080"
+		},
+		"market1": {
+			"name": "bittrex"
+		}
+	},
+	{
+		"coin": "LTC",
+		"difference": 0.0020535206336702496,
+		"time": "2018-03-05T06:36:50.273Z",
+		"market2": {
+			"name": "bittrex",
+			"last": 0.01831834
+		},
+		"market1": {
+			"name": "poloniex",
+			"last": "0.01828080"
+		},
+		"id": 0
+	}
+]

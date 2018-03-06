@@ -1,6 +1,5 @@
 //With dummy api secrets, poloniex throw error, bittrex don't, instead output false in its returned json.
 
-//result = [ array buyPairs, array sellPairs, string title, string sellerMarket, string buyerMarket]
 const config = require('./config.js');
 
 const Promise = require('bluebird')
@@ -16,7 +15,7 @@ const bitstamp = new Bitstamp(config.credentials.bitstamp.key , config.credentia
 const secondMatch = require('./secondMatch_experiment');
 
 
-//result: [buyPairs, sellPairs, title, holder['market1']['name'], holder['market2']['name']]
+//result = [ array buyPairs, array sellPairs, string title, string sellerMarket, string buyerMarket]
 module.exports = function placeOrders(result, baseCoin){
 
 	function wrapper(type, orders)){
@@ -24,11 +23,11 @@ module.exports = function placeOrders(result, baseCoin){
 		if (i < 1){
 			if (type == 'buy'){
 				let [ordersx, exchangex, targetCoinx] = secondMatch.weBuy(orders, result[3], result[2])
-				//cancell all orders
+				//cancell all orders here
 				placeOrders([ordersx, 0, targetCoinx, exchangex, 0])
 			} else {
 				let [ordersx, exchangex, targetCoinx] = secondMatch.weSell(orders, result[4], result[2])			
-				//cancell all orders
+				//cancell all orders here
 				placeOrders([0, ordersx, targetCoinx, 0, exchangex])
 			}
 			i++
